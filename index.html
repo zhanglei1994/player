@@ -61,6 +61,8 @@
       }
 
       #position {
+        width: 30%;
+        height: 50px;
         cursor: pointer;
       }
     </style>
@@ -68,6 +70,8 @@
 
   <body>
     <div class="cont">
+      <p id="tmr"></p>
+      <input id="position" type="range" min="0" max="100" value="0" step="1" />
       <div class='cntls'>
         <h1>MIDI</h1>
         <div id="FileDrop" class="fileDrop">
@@ -87,9 +91,7 @@
         </div>
       </div>
       <hr />
-      <p id="tmr"></p>
       <button id="btn" onclick="go();">Play</button>
-      <p><input id="position" type="range" min="0" max="100" value="0" step="1" /></p>
     </div>
     <script>
       const fileInput = document.getElementById('mp3-file');
