@@ -6,21 +6,91 @@
 	-->
     <script src='./MIDIFile.JS'></script>
     <script src='./WebAudioFontPlayer.js'></script>
+    <style type="text/css">
+      .cont {
+        width: 100vw;
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .cntls {
+        width: 30%;
+      }
+
+      .fileDrop {
+        position: relative;
+        width: 100%;
+        height: 100px;
+        border: 2px dashed black;
+        color: black;
+        margin: 20px auto;
+      }
+
+      .fileDrop.Hover {
+        background-color: black;
+        color: white;
+      }
+
+      .fileDrop input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        left: 0px;
+        top: 0px;
+      }
+
+      .fileDrop #Text {
+        position: absolute;
+        width: 100%;
+        height: 20px;
+        line-height: 20px;
+        left: 0px;
+        top: 50%;
+        transform: translate(0, -50%);
+        text-align: center;
+      }
+
+      #btn {
+        width: 30%;
+        height: 40px;
+        cursor: pointer;
+      }
+
+      #position {
+        cursor: pointer;
+      }
+    </style>
   </head>
 
   <body>
-    <div id='cntls'>
-      <h1>MIDI</h1>
-      <p><input type="file" id="filesinput" name="filesarr[]" accept="audio/midi" /></p>
+    <div class="cont">
+      <div class='cntls'>
+        <h1>MIDI</h1>
+        <div id="FileDrop" class="fileDrop">
+          <div id="Text">
+            Drop a midi file here
+          </div>
+          <input type="file" id="filesinput" name="filesarr[]" accept="audio/midi" />
+        </div>
+      </div>
+      <div class='cntls'>
+        <h1>mp3</h1>
+        <div id="mp3Drop" class="fileDrop">
+          <div id="Text">
+            Drop a mp3 file here
+          </div>
+          <input type="file" id="mp3-file" accept=".mp3" />
+        </div>
+      </div>
+      <hr />
+      <p id="tmr"></p>
+      <button id="btn" onclick="go();">Play</button>
+      <p><input id="position" type="range" min="0" max="100" value="0" step="1" /></p>
     </div>
-    <div id='cntls'>
-      <h1>mp3</h1>
-      <p><input type="file" id="mp3-file" accept=".mp3" /></p>
-    </div>
-    <hr />
-    <p id="tmr"></p>
-    <button id="btn" onclick="go();">Play</button>
-    <p><input id="position" type="range" min="0" max="100" value="0" step="1" /></p>
     <script>
       const fileInput = document.getElementById('mp3-file');
       let mp3AudioContext = null;
@@ -39,26 +109,28 @@
       var loadedsong = null;
       var animationId
       var playing
-      fileInput.addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        if (file) {
-          if (mp3AudioContext) {
-            stopAudio();
+      document
+        .querySelector("#mp3Drop input")
+        .addEventListener("change", (e) => {
+          const file = event.target.files[0];
+          if (file) {
+            document.querySelector("#mp3Drop #Text").textContent = file.name;
+            if (mp3AudioContext) {
+              stopAudio();
+            }
+            mp3AudioContext = new AudioContext();
+            const reader = new FileReader();
+            reader.onload = function (event) {
+              const arrayBuffer = event.target.result;
+              mp3AudioContext.decodeAudioData(arrayBuffer, function (buffer) {
+                // playAudio(buffer);
+                mp3Buffer = buffer;
+              });
+            };
+            reader.readAsArrayBuffer(file);
           }
-          mp3AudioContext = new AudioContext();
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            const arrayBuffer = event.target.result;
-            mp3AudioContext.decodeAudioData(arrayBuffer, function (buffer) {
-              // playAudio(buffer);
-              mp3Buffer = buffer;
-            });
-          };
-          reader.readAsArrayBuffer(file);
-        }
-      });
+        });
       function playAudio(currentTime) {
-        console.log(1234214)
         source = mp3AudioContext.createBufferSource();
         source.buffer = mp3Buffer;
         source.connect(mp3AudioContext.destination);
@@ -75,13 +147,13 @@
           // audioContext.resume();
           currentTime = mp3AudioContext.currentTime
           source.stop();
-          document.getElementById('btn').innerHTML = 'play';
+          document.getElementById('btn').innerHTML = 'Play';
           return
         }
         // document.getElementById('tmr').innerHTML = 'starting...';
         try {
           startPlay(loadedsong);
-          document.getElementById('btn').innerHTML = 'pause';
+          document.getElementById('btn').innerHTML = 'Pause';
         } catch (expt) {
           // document.getElementById('tmr').innerHTML = 'error ' + expt;
         }
@@ -297,6 +369,9 @@
         console.log(event);
         var file = event.target.files[0];
         console.log(file);
+        document.querySelector(
+          "#FileDrop #Text"
+        ).textContent = file.name;
         var fileReader = new FileReader();
         fileReader.onload = function (progressEvent) {
           console.log(progressEvent);
@@ -321,7 +396,34 @@
         };
         xmlHttpRequest.send(null);
       }
-      document.getElementById('filesinput').addEventListener('change', handleFileSelect, false);
+      document
+        .querySelector("#FileDrop input")
+        .addEventListener("change", handleFileSelect)
+      // document.getElementById('filesinput').addEventListener('change', handleFileSelect, false);
+      const fileDrop = document.querySelector("#FileDrop");
+      fileDrop.addEventListener("dragenter", () =>
+        fileDrop.classList.add("Hover")
+      );
+
+      fileDrop.addEventListener("dragleave", () =>
+        fileDrop.classList.remove("Hover")
+      );
+
+      fileDrop.addEventListener("drop", () =>
+        fileDrop.classList.remove("Hover")
+      );
+      const mp3Drop = document.querySelector("#mp3Drop");
+      mp3Drop.addEventListener("dragenter", () =>
+        mp3Drop.classList.add("Hover")
+      );
+
+      mp3Drop.addEventListener("dragleave", () =>
+        mp3Drop.classList.remove("Hover")
+      );
+
+      mp3Drop.addEventListener("drop", () =>
+        mp3Drop.classList.remove("Hover")
+      );
     </script>
   </body>
 
